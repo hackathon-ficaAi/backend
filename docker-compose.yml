@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # --- SERVIÇO 1: SEU BACKEND JAVA ---
+  backend:
+    container_name: ficaai-backend
+    build: .                      # "Construa usando o Dockerfile desta pasta (.)"
+    ports:
+      - "8080:8080"               # "Libere a porta 8080"
+    restart: always               # "Se cair, sobe de novo"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - hackathon-net
+
+  # --- SERVIÇO 2: PYTHON (Futuro) ---
+  # data-science-api:
+  #   container_name: ficaai-python
+  #   build: ../data-science      # Supondo que a pasta de dados esteja no mesmo diretório raiz
+  #   ports:
+  #     - "5000:5000"
+  #   networks:
+  #     - hackathon-net
+
+# --- A REDE INTERNA ---
+# Cria uma "wifi" virtual onde os containers podem conversar
+networks:
+  hackathon-net:
+    driver: bridge
