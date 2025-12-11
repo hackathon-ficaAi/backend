@@ -27,7 +27,7 @@ Este projeto foi desenhado para ser agnóstico ao ambiente, rodando via **Docker
 
 ```bash
 docker-compose up --build
-
+```
 ## Links Úteis
 
 Documentação (Swagger)	http://localhost:8080/swagger-ui/index.html	--> Teste os endpoints visualmente.
