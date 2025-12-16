@@ -17,13 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Testes Unitários para ChurnService
- *
- * @ExtendWith(MockitoExtension.class) - Habilita o Mockito para criar mocks
- * @Mock - Cria um mock (objeto falso) das dependências
- * @InjectMocks - Injeta os mocks no objeto que queremos testar
- */
 @ExtendWith(MockitoExtension.class)
 class ChurnServiceTest {
 
@@ -38,10 +31,6 @@ class ChurnServiceTest {
 
     private ClienteInputDTO clienteInput;
 
-    /**
-     * @BeforeEach - Executa antes de cada teste
-     * Preparamos dados de teste que serão usados em vários testes
-     */
     @BeforeEach
     void setUp() {
         clienteInput = new ClienteInputDTO();
