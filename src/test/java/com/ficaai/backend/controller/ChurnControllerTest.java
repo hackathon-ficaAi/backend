@@ -83,7 +83,6 @@ class ChurnControllerTest {
     @Test
     @DisplayName("POST /api/predict - Deve retornar 400 quando atrasos_pagamento for nulo")
     void deveRetornar400QuandoAtrasosPagamentoForNulo() throws Exception {
-
         clienteInput.setAtrasosPagamento(null);
 
         mockMvc.perform(post("/api/predict")
@@ -156,7 +155,6 @@ class ChurnControllerTest {
     @Test
     @DisplayName("POST /api/predict - Deve processar JSON com underscores corretamente")
     void deveProcessarJsonComUnderscoresCorretamente() throws Exception {
-
         PrevisaoOutputDTO previsaoEsperada = new PrevisaoOutputDTO("Vai cancelar", 0.81);
         when(churnService.analisarCliente(any(ClienteInputDTO.class)))
             .thenReturn(previsaoEsperada);
