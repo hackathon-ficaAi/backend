@@ -33,6 +33,10 @@ public class ChurnService {
 
     // Novo método para salvar no histórico
     public PrevisaoOutputDTO analisarCliente(ClienteInputDTO dados) {
+
+        long inicioTotal = System.currentTimeMillis();
+        log.info("Iniciando análise de churn");
+
         PrevisaoOutputDTO resultado;
 
         // 1. Obtém a previsão (Mock ou Python)
@@ -45,36 +49,75 @@ public class ChurnService {
         // 2. SALVAR NO BANCO (Passo Novo)
         salvarNoHistorico(dados, resultado);
 
+        long tempoTotal = System.currentTimeMillis() - inicioTotal;
+        log.info(
+                "Análise de churn finalizada | previsao={} | tempoTotal={}ms",
+                resultado.getPrevisao(),
+                tempoTotal
+        );
+
         return resultado;
     }
     // Método que faz a chamada real HTTP
     private PrevisaoOutputDTO chamarApiPython(ClienteInputDTO dados) {
+
+        long inicio = System.currentTimeMillis();
+        log.info("Chamando API Python de previsão");
+
         try {
-            // O postForObject envia o 'dados' como JSON e espera receber um PrevisaoOutputDTO de volta
-            return restTemplate.postForObject(PYTHON_API_URL, dados, PrevisaoOutputDTO.class);
+            PrevisaoOutputDTO resposta =
+                    restTemplate.postForObject(PYTHON_API_URL, dados, PrevisaoOutputDTO.class);
+
+            long duracao = System.currentTimeMillis() - inicio;
+            log.info(
+                    "Resposta da API Python recebida com sucesso | tempoResposta={}ms",
+                    duracao
+            );
+
+            return resposta;
+
         } catch (ResourceAccessException e) {
             // Erro de conexão (Python API down, timeout, connection refused)
+            long duracao = System.currentTimeMillis() - inicio;
             log.error("Não foi possível conectar à API Python em {}: {}", PYTHON_API_URL, e.getMessage());
             throw new ExternalServiceException("API de previsão está indisponível", e);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             // Python API retornou erro HTTP (4xx ou 5xx)
-            log.error("API Python retornou erro: status={}, body={}",
-                    e.getStatusCode(), e.getResponseBodyAsString());
+            long duracao = System.currentTimeMillis() - inicio;
+
+            log.error(
+                    "Erro retornado pela API Python | tempoResposta={}ms | status={} | body={}",
+                    duracao,
+                    e.getStatusCode(),
+                    e.getResponseBodyAsString()
+            );
             throw new ExternalServiceException("Erro ao processar previsão no serviço externo", e);
         }
     }
 
     // Método que gera uma previsão MOCK
     private PrevisaoOutputDTO gerarPrevisaoMock(ClienteInputDTO dados) {
+        long inicio = System.currentTimeMillis();
         log.info("Gerando previsão MOCK para: {}", dados);
-        
+
+        PrevisaoOutputDTO resultado;
+
         // Nova regra baseada nos campos da imagem:
         // Se tiver muitos atrasos (mais de 3) ele cancela.
         if (dados.getAtrasosPagamento() > 3) {
-            return new PrevisaoOutputDTO("Vai cancelar", 0.81);
+            resultado = new PrevisaoOutputDTO("Vai cancelar", 0.81);
         } else {
-            return new PrevisaoOutputDTO("Vai continuar", 0.95);
+            resultado = new PrevisaoOutputDTO("Vai continuar", 0.95);
         }
+
+        long duracao = System.currentTimeMillis() - inicio;
+        log.info(
+                "Previsão MOCK gerada | previsao={} | tempoResposta={}ms",
+                resultado.getPrevisao(),
+                duracao
+        );
+
+        return resultado;
     }
 
     private void salvarNoHistorico(ClienteInputDTO dados, PrevisaoOutputDTO resultado) {
