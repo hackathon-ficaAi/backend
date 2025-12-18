@@ -92,10 +92,11 @@ Documentação: SpringDoc OpenApi (Swagger)
 Containerização: Docker & Docker Compose
 
 ## 📂 Estrutura do Projeto
-
+```
 src/main/java/com/ficaai/backend
 ├── controller   # Pontos de entrada da API (REST)
 ├── dto          # Objetos de Transferência de Dados (Contrato JSON)
 ├── model        # Entidades do Banco de Dados
 ├── repository   # Camada de acesso a dados (JPA)
 └── service      # Regras de Negócio e Lógica de IA
+```
