@@ -57,7 +57,7 @@ class ClienteInputDTOTest {
     }
 
     @Test
-    @DisplayName("Deve invalidar quando tempo_contrato_meses for menor que 1 ")
+    @DisplayName("Deve invalidar quando tempo_contrato_meses for menor que 1")
     void deveInvalidarQuandoTempoContratoMenorQue1() {
         cliente.setTempoContratoMeses(0);
 
