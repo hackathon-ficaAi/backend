@@ -1,15 +1,20 @@
 package com.ficaai.backend.service;
 
-import com.ficaai.backend.model.HistoricoAnalise;
-import com.ficaai.backend.repository.HistoricoRepository;
-import org.springframework.beans.BeanUtils;
 import com.ficaai.backend.dto.ClienteInputDTO;
 import com.ficaai.backend.dto.PrevisaoOutputDTO;
-
+import com.ficaai.backend.exception.ExternalServiceException;
+import com.ficaai.backend.model.HistoricoAnalise;
+import com.ficaai.backend.repository.HistoricoRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Service // Diz ao Spring: "Isso aqui contém lógica de negócio"
 public class ChurnService {
 
@@ -47,16 +52,21 @@ public class ChurnService {
         try {
             // O postForObject envia o 'dados' como JSON e espera receber um PrevisaoOutputDTO de volta
             return restTemplate.postForObject(PYTHON_API_URL, dados, PrevisaoOutputDTO.class);
-        } catch (Exception e) {
-            // Se der erro na conexão, loga e devolve um fallback (segurança)
-            System.err.println("Erro ao conectar com Python: " + e.getMessage());
-            return new PrevisaoOutputDTO("Erro no modelo", 0.0);
+        } catch (ResourceAccessException e) {
+            // Erro de conexão (Python API down, timeout, connection refused)
+            log.error("Não foi possível conectar à API Python em {}: {}", PYTHON_API_URL, e.getMessage());
+            throw new ExternalServiceException("API de previsão está indisponível", e);
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            // Python API retornou erro HTTP (4xx ou 5xx)
+            log.error("API Python retornou erro: status={}, body={}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
+            throw new ExternalServiceException("Erro ao processar previsão no serviço externo", e);
         }
     }
 
     // Método que gera uma previsão MOCK
     private PrevisaoOutputDTO gerarPrevisaoMock(ClienteInputDTO dados) {
-        System.out.println("Gerando previsão MOCK para: " + dados);
+        log.info("Gerando previsão MOCK para: {}", dados);
         
         // Nova regra baseada nos campos da imagem:
         // Se tiver muitos atrasos (mais de 3) ele cancela.
@@ -80,10 +90,10 @@ public class ChurnService {
             
             // Salva no H2
             repository.save(historico);
-            System.out.println("Histórico salvo com sucesso! ID: " + historico.getId());
-            
+            log.info("Histórico salvo com sucesso! ID: {}", historico.getId());
+
         } catch (Exception e) {
-            System.err.println("Erro ao salvar histórico: " + e.getMessage());
+            log.error("Erro ao salvar histórico: {}", e.getMessage(), e);
             // Não lançamos erro aqui para não travar a resposta pro usuário
         }
     }
