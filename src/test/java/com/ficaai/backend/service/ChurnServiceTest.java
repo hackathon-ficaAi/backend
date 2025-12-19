@@ -41,7 +41,7 @@ class ChurnServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar 'Vai continuar' quando atrasos <= 3")
+    @DisplayName("Deve retornar 'Vai continuar' quando atrasos forem menores ou iguais a três")
     void deveRetornarVaiContinuarQuandoAtrasosMenorOuIgualTres() {
         clienteInput.setAtrasosPagamento(2);
         
@@ -58,7 +58,7 @@ class ChurnServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar 'Vai cancelar' quando atrasos > 3")
+    @DisplayName("Deve retornar 'Vai cancelar' quando atrasos forem maiores que três")
     void deveRetornarVaiCancelarQuandoAtrasosMaiorQueTres() {
         clienteInput.setAtrasosPagamento(5);
         
@@ -67,7 +67,7 @@ class ChurnServiceTest {
 
         PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
 
-        assertNotNull(resultado);
+        assertNotNull(resultado, "O resultado não deve ser nulo");
         assertEquals("Vai cancelar", resultado.getPrevisao());
         assertEquals(0.81, resultado.getProbabilidade());
         
@@ -88,7 +88,8 @@ class ChurnServiceTest {
         verify(repository, times(1)).save(argThat(historico ->
             historico.getTempoContratoMeses().equals(12) &&
             historico.getAtrasosPagamento().equals(2) &&
-            historico.getUsoMensal().equals(150.0) &&
+            historico.getUsoMensal() != null &&
+            Math.abs(historico.getUsoMensal() - 150.0) < 0.001 &&
             historico.getPlano().equals("Premium") &&
             historico.getPrevisao() != null &&
             historico.getProbabilidade() != null
@@ -103,7 +104,7 @@ class ChurnServiceTest {
 
         assertDoesNotThrow(() -> {
             PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
-            assertNotNull(resultado);
+            assertNotNull(resultado, "O resultado não deve ser nulo");
             assertEquals("Vai continuar", resultado.getPrevisao());
         });
     }
