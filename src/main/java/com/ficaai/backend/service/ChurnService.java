@@ -13,6 +13,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
+
 
 @Slf4j
 @Service // Diz ao Spring: "Isso aqui contém lógica de negócio"
@@ -24,12 +26,19 @@ public class ChurnService {
     @Autowired
     private HistoricoRepository repository;
 
+    @Value("${python.api.url}")
+    private String pythonApiUrl;
+
+    @Value("${python.api.usar-mock}")
+    private boolean usarMock;
+
+
     // URL do Python (O time de Data Science vai te passar isso depois)
     // Por enquanto aponta para localhost na porta 5000 (padrão do Flask/Python)
-    private final String PYTHON_API_URL = "http://localhost:5000/predict";
+    //private final String PYTHON_API_URL = "http://localhost:5000/predict";
 
     // Mude para TRUE se o Python cair ou não estiver pronto
-    private final boolean USAR_MOCK = true; 
+    //private final boolean USAR_MOCK = true; 
 
     // Novo método para salvar no histórico
     public PrevisaoOutputDTO analisarCliente(ClienteInputDTO dados) {
@@ -40,7 +49,7 @@ public class ChurnService {
         PrevisaoOutputDTO resultado;
 
         // 1. Obtém a previsão (Mock ou Python)
-        if (USAR_MOCK) {
+        if (usarMock) {
             resultado = gerarPrevisaoMock(dados);
         } else {
             resultado = chamarApiPython(dados);
@@ -66,7 +75,7 @@ public class ChurnService {
 
         try {
             PrevisaoOutputDTO resposta =
-                    restTemplate.postForObject(PYTHON_API_URL, dados, PrevisaoOutputDTO.class);
+                    restTemplate.postForObject(pythonApiUrl, dados, PrevisaoOutputDTO.class);
 
             long duracao = System.currentTimeMillis() - inicio;
             log.info(
@@ -79,7 +88,7 @@ public class ChurnService {
         } catch (ResourceAccessException e) {
             // Erro de conexão (Python API down, timeout, connection refused)
             long duracao = System.currentTimeMillis() - inicio;
-            log.error("Não foi possível conectar à API Python em {}: {}", PYTHON_API_URL, e.getMessage());
+            log.error("Não foi possível conectar à API Python em {}: {}", pythonApiUrl, e.getMessage());
             throw new ExternalServiceException("API de previsão está indisponível", e);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             // Python API retornou erro HTTP (4xx ou 5xx)
