@@ -105,29 +105,32 @@ public class ChurnService {
     }
 
     // Método que gera uma previsão MOCK
-    private PrevisaoOutputDTO gerarPrevisaoMock(ClienteInputDTO dados) {
-        long inicio = System.currentTimeMillis();
-        log.info("Gerando previsão MOCK para: {}", dados);
+private PrevisaoOutputDTO gerarPrevisaoMock(ClienteInputDTO dados) {
 
-        PrevisaoOutputDTO resultado;
+    long inicio = System.currentTimeMillis();
+    log.info("Gerando previsão MOCK para: {}", dados);
 
-        // Nova regra baseada nos campos da imagem:
-        // Se tiver muitos atrasos (mais de 3) ele cancela.
-        if (dados.getAtrasosPagamento() > 3) {
-            resultado = new PrevisaoOutputDTO("Vai cancelar", 0.81);
-        } else {
-            resultado = new PrevisaoOutputDTO("Vai continuar", 0.95);
-        }
+    double prob = 0.2;
 
-        long duracao = System.currentTimeMillis() - inicio;
-        log.info(
-                "Previsão MOCK gerada | previsao={} | tempoResposta={}ms",
-                resultado.getPrevisao(),
-                duracao
-        );
+    prob += dados.getAtrasosPagamento() * 0.15;
+    prob += dados.getTempoContratoMeses() < 12 ? 0.25 : 0;
+    prob += "basico".equalsIgnoreCase(dados.getPlano()) ? 0.2 : 0;
 
-        return resultado;
-    }
+    prob = Math.min(prob, 0.99);
+
+    String label = prob >= 0.5 ? "Vai cancelar" : "Vai continuar";
+
+    long duracao = System.currentTimeMillis() - inicio;
+    log.info(
+            "Previsão MOCK gerada | previsao={} | probabilidade={} | tempoResposta={}ms",
+            label,
+            prob,
+            duracao
+    );
+
+    return new PrevisaoOutputDTO(label, prob);
+}
+
 
     private void salvarNoHistorico(ClienteInputDTO dados, PrevisaoOutputDTO resultado) {
         try {
