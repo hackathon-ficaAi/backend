@@ -112,11 +112,26 @@ private PrevisaoOutputDTO gerarPrevisaoMock(ClienteInputDTO dados) {
 
     double prob = 0.2;
 
+    // Regra 1: atrasos em pagamento aumentam o risco
     prob += dados.getAtrasosPagamento() * 0.15;
+
+    // Regra 2: contrato curto aumenta o risco
     prob += dados.getTempoContratoMeses() < 12 ? 0.25 : 0;
+
+    // Regra 3: plano básico tem maior risco
     prob += "basico".equalsIgnoreCase(dados.getPlano()) ? 0.2 : 0;
 
-    prob = Math.min(prob, 0.99);
+    // Regra 4: uso mensal (engajamento)
+    if (dados.getUsoMensal() < 5) {
+        prob += 0.20;
+    } else if (dados.getUsoMensal() < 15) {
+        prob += 0.10;
+    } else {
+        prob -= 0.10;
+    }
+
+    // Garante que a probabilidade fique no intervalo válido
+    prob = Math.max(0.01, Math.min(prob, 0.99));
 
     String label = prob >= 0.5 ? "Vai cancelar" : "Vai continuar";
 
@@ -130,6 +145,7 @@ private PrevisaoOutputDTO gerarPrevisaoMock(ClienteInputDTO dados) {
 
     return new PrevisaoOutputDTO(label, prob);
 }
+
 
 
     private void salvarNoHistorico(ClienteInputDTO dados, PrevisaoOutputDTO resultado) {
