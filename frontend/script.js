@@ -37,5 +37,4 @@ form.addEventListener("submit", async (e) => {
     } catch {
         resultadoDiv.innerHTML = "❌ Erro ao conectar com o backend.";
     }
-    
 });
