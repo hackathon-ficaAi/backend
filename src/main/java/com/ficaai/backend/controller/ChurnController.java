@@ -20,13 +20,16 @@ public class ChurnController {
 
     @PostMapping("/predict")
     public ResponseEntity<PrevisaoOutputDTO> preverChurn(@RequestBody @Valid ClienteInputDTO dados) {
-        // O Controller apenas repassa a bola
+        // Log dos dados recebidos para depuração
         log.info(
-                "Requisição recebida para previsão de churn | atrasosPagamento={} | tempoContratoMeses={} | plano={}",
-                dados.getAtrasosPagamento(),
-                dados.getTempoContratoMeses(),
-                dados.getPlano()
-        );
+                "Requisição recebida para previsão de churn | pais={} | genero={} | idade={} | numProdutos={} | membroAtivo={} | saldo={} | salarioEstimado={}",
+                dados.getPais(),
+                dados.getGenero(),
+                dados.getIdade(),
+                dados.getNumProdutos(),
+                dados.getMembroAtivo(),
+                dados.getSaldo(),
+                dados.getSalarioEstimado());
         PrevisaoOutputDTO resultado = churnService.analisarCliente(dados);
         return ResponseEntity.ok(resultado);
     }
