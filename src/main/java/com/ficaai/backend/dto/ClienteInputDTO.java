@@ -10,26 +10,34 @@ import lombok.Data;
 @Data
 public class ClienteInputDTO {
 
-    // A imagem pede "tempo_contrato_meses"
-    @NotNull(message = "O tempo de contrato é obrigatório")
-    @Min(value = 1, message = "O contrato deve ter pelo menos 1 mês")
-    @JsonProperty("tempo_contrato_meses") // Isso mapeia o JSON com underline para a variável Java
-    private Integer tempoContratoMeses;
+    @NotBlank(message = "O país é obrigatório")
+    @JsonProperty("pais")
+    private String pais;
 
-    // A imagem pede "atrasos_pagamento"
-    @NotNull(message = "O número de atrasos é obrigatório")
-    @Min(value = 0, message = "Atrasos não podem ser negativos")
-    @JsonProperty("atrasos_pagamento")
-    private Integer atrasosPagamento;
+    @NotBlank(message = "O gênero é obrigatório")
+    @JsonProperty("genero")
+    private String genero;
 
-    // A imagem pede "uso_mensal"
-    @NotNull(message = "O uso mensal é obrigatório")
-    @Positive(message = "O uso mensal deve ser um valor positivo")
-    @JsonProperty("uso_mensal")
-    private Double usoMensal;
+    @NotNull(message = "A idade é obrigatória e deve ser no mínimo 1")
+    @Min(value = 1, message = "A idade deve ser no mínimo 1")
+    @JsonProperty("idade")
+    private Integer idade;
 
-    // A imagem pede "plano" (Ex: Premium)
-    @NotBlank(message = "O plano é obrigatório")
-    @JsonProperty("plano")
-    private String plano;
+    @NotNull(message = "O número de produtos é obrigatório e não pode ser negativo")
+    @Min(value = 0, message = "O número de produtos não pode ser negativo")
+    @JsonProperty("num_produtos")
+    private Integer numProdutos;
+
+    @NotNull(message = "Membro ativo é obrigatório")
+    @JsonProperty("membro_ativo")
+    private Boolean membroAtivo;
+
+    @NotNull(message = "O saldo é obrigatório")
+    @JsonProperty("saldo")
+    private Double saldo;
+
+    @NotNull(message = "O salário estimado é obrigatório e deve ser positivo")
+    @Positive(message = "O salário estimado deve ser um valor positivo")
+    @JsonProperty("salario_estimado")
+    private Double salarioEstimado;
 }
