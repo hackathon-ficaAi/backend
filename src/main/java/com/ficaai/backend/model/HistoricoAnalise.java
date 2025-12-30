@@ -14,10 +14,13 @@ public class HistoricoAnalise {
     private Long id;
 
     // Dados de Entrada (Input)
-    private Integer tempoContratoMeses;
-    private Double usoMensal;
-    private Integer atrasosPagamento;
-    private String plano;
+    private String pais;
+    private String genero;
+    private Integer idade;
+    private Integer numProdutos;
+    private Boolean membroAtivo;
+    private Double saldo;
+    private Double salarioEstimado;
 
     // Dados de Saída (Output / IA)
     private String previsao;
