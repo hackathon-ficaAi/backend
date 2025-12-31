@@ -6,6 +6,10 @@ import com.ficaai.backend.exception.ExternalServiceException;
 import com.ficaai.backend.model.HistoricoAnalise;
 import com.ficaai.backend.repository.HistoricoRepository;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,9 +19,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
-
 @Slf4j
-@Service // Diz ao Spring: "Isso aqui contém lógica de negócio"
+@Service
 public class ChurnService {
 
     @Autowired
@@ -29,143 +32,89 @@ public class ChurnService {
     @Value("${python.api.url}")
     private String pythonApiUrl;
 
-    @Value("${python.api.usar-mock}")
-    private boolean usarMock;
-
-
-    // URL do Python (O time de Data Science vai te passar isso depois)
-    // Por enquanto aponta para localhost na porta 5000 (padrão do Flask/Python)
-    //private final String PYTHON_API_URL = "http://localhost:5000/predict";
-
-    // Mude para TRUE se o Python cair ou não estiver pronto
-    //private final boolean USAR_MOCK = true; 
-
-    // Novo método para salvar no histórico
+    // Método principal que analisa o cliente
     public PrevisaoOutputDTO analisarCliente(ClienteInputDTO dados) {
-
         long inicioTotal = System.currentTimeMillis();
-        log.info("Iniciando análise de churn");
+        log.info("Iniciando análise de churn (Modelo Bancário)");
 
-        PrevisaoOutputDTO resultado;
+        // 1. Chama a API Python com os dados reais
+        PrevisaoOutputDTO resultado = chamarApiPython(dados);
 
-        // 1. Obtém a previsão (Mock ou Python)
-        if (usarMock) {
-            resultado = gerarPrevisaoMock(dados);
-        } else {
-            resultado = chamarApiPython(dados);
-        }
-
-        // 2. SALVAR NO BANCO (Passo Novo)
+        // 2. Salva no histórico
         salvarNoHistorico(dados, resultado);
 
         long tempoTotal = System.currentTimeMillis() - inicioTotal;
-        log.info(
-                "Análise de churn finalizada | previsao={} | tempoTotal={}ms",
-                resultado.getPrevisao(),
-                tempoTotal
-        );
+        log.info("Análise finalizada | previsao={} | tempoTotal={}ms", resultado.getPrevisao(), tempoTotal);
 
         return resultado;
     }
-    // Método que faz a chamada real HTTP
-    private PrevisaoOutputDTO chamarApiPython(ClienteInputDTO dados) {
 
+    // Método que chama a API Python real
+    private PrevisaoOutputDTO chamarApiPython(ClienteInputDTO dados) {
         long inicio = System.currentTimeMillis();
-        log.info("Chamando API Python de previsão");
+        log.info("Enviando dados para API Python...");
 
         try {
-            PrevisaoOutputDTO resposta =
-                    restTemplate.postForObject(pythonApiUrl, dados, PrevisaoOutputDTO.class);
+            // --- MAPEAMENTO DE DADOS ---
+            // O Python espera chaves em minúsculo com underline (ex: credit_score)
+            // O Java usa CamelCase (ex: creditScore). Vamos traduzir aqui.
+
+            Map<String, Object> payloadPython = new HashMap<>();
+
+            // Mapeando campos do DTO (Java) para o JSON da API (Python)
+            payloadPython.put("credit_score", dados.getCreditScore());
+            payloadPython.put("pais", dados.getPais());
+            payloadPython.put("genero", dados.getGenero());
+            payloadPython.put("idade", dados.getIdade());
+            payloadPython.put("tenure", dados.getTempoContrato()); // Python geralmente chama de 'tenure'
+            payloadPython.put("saldo", dados.getSaldo());
+            payloadPython.put("num_produtos", dados.getNumProdutos());
+
+            // Tratamento para booleanos (se o Python esperar 0 ou 1)
+            payloadPython.put("tem_cartao_credito", dados.getTemCartaoCredito() ? 1 : 0);
+            payloadPython.put("membro_ativo", dados.getMembroAtivo() ? 1 : 0);
+
+            payloadPython.put("salario_estimado", dados.getSalarioEstimado());
+
+            // --- FIM DO MAPEAMENTO ---
+
+            // Envia o Mapa (payloadPython) ao invés do objeto 'dados' direto
+            PrevisaoOutputDTO resposta = restTemplate.postForObject(pythonApiUrl, payloadPython,
+                    PrevisaoOutputDTO.class);
 
             long duracao = System.currentTimeMillis() - inicio;
-            log.info(
-                    "Resposta da API Python recebida com sucesso | tempoResposta={}ms",
-                    duracao
-            );
+            log.info("Sucesso! API Python respondeu em {}ms", duracao);
 
             return resposta;
 
         } catch (ResourceAccessException e) {
-            // Erro de conexão (Python API down, timeout, connection refused)
-            long duracao = System.currentTimeMillis() - inicio;
-            log.error("Não foi possível conectar à API Python em {}: {}", pythonApiUrl, e.getMessage());
-            throw new ExternalServiceException("API de previsão está indisponível", e);
+            log.error("API Python inacessível em {}: {}", pythonApiUrl, e.getMessage());
+            throw new ExternalServiceException("Serviço de IA indisponível no momento", e);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            // Python API retornou erro HTTP (4xx ou 5xx)
-            long duracao = System.currentTimeMillis() - inicio;
-
-            log.error(
-                    "Erro retornado pela API Python | tempoResposta={}ms | status={} | body={}",
-                    duracao,
-                    e.getStatusCode(),
-                    e.getResponseBodyAsString()
-            );
-            throw new ExternalServiceException("Erro ao processar previsão no serviço externo", e);
+            log.error("Erro API Python: {} | Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            // Repassa a mensagem de erro detalhada do Python (ex: campo faltando)
+            throw new ExternalServiceException("Erro de validação na IA: " + e.getResponseBodyAsString(), e);
         }
     }
 
-    // Método que gera uma previsão MOCK
-private PrevisaoOutputDTO gerarPrevisaoMock(ClienteInputDTO dados) {
-
-    long inicio = System.currentTimeMillis();
-    log.info("Gerando previsão MOCK para: {}", dados);
-
-    double prob = 0.2;
-
-    // Regra 1: atrasos em pagamento aumentam o risco
-    prob += dados.getAtrasosPagamento() * 0.15;
-
-    // Regra 2: contrato curto aumenta o risco
-    prob += dados.getTempoContratoMeses() < 12 ? 0.25 : 0;
-
-    // Regra 3: plano básico tem maior risco
-    prob += "basico".equalsIgnoreCase(dados.getPlano()) ? 0.2 : 0;
-
-    // Regra 4: uso mensal (engajamento)
-    if (dados.getUsoMensal() < 5) {
-        prob += 0.20;
-    } else if (dados.getUsoMensal() < 15) {
-        prob += 0.10;
-    } else {
-        prob -= 0.10;
-    }
-
-    // Garante que a probabilidade fique no intervalo válido
-    prob = Math.max(0.01, Math.min(prob, 0.99));
-
-    String label = prob >= 0.5 ? "Vai cancelar" : "Vai continuar";
-
-    long duracao = System.currentTimeMillis() - inicio;
-    log.info(
-            "Previsão MOCK gerada | previsao={} | probabilidade={} | tempoResposta={}ms",
-            label,
-            prob,
-            duracao
-    );
-
-    return new PrevisaoOutputDTO(label, prob);
-}
-
-
-
+    // Método que salva a análise no banco de dados
     private void salvarNoHistorico(ClienteInputDTO dados, PrevisaoOutputDTO resultado) {
         try {
             HistoricoAnalise historico = new HistoricoAnalise();
-            
-            // Copia os dados do Input para o Histórico (automaticamente, pois tem nomes iguais)
+
+            // Copia propriedades iguais
             BeanUtils.copyProperties(dados, historico);
-            
-            // Define os dados da Saída
+
+            // Campos manuais (caso os nomes sejam diferentes no banco)
+            historico.setTempoContratoMeses(dados.getTempoContrato());
+
             historico.setPrevisao(resultado.getPrevisao());
             historico.setProbabilidade(resultado.getProbabilidade());
-            
-            // Salva no H2
-            repository.save(historico);
-            log.info("Histórico salvo com sucesso! ID: {}", historico.getId());
 
+            repository.save(historico);
+            log.info("Histórico ID {} salvo.", historico.getId());
         } catch (Exception e) {
-            log.error("Erro ao salvar histórico: {}", e.getMessage(), e);
-            // Não lançamos erro aqui para não travar a resposta pro usuário
+            log.error("Falha ao salvar histórico (não bloqueante): {}", e.getMessage());
         }
     }
 }

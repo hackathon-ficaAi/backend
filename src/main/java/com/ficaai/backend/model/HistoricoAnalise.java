@@ -29,8 +29,14 @@ public class HistoricoAnalise {
     // Metadados
     private LocalDateTime dataAnalise;
 
+    private Integer tempoContratoMeses;
+
     @PrePersist // Antes de salvar, preenche a data atual
     public void prePersist() {
         this.dataAnalise = LocalDateTime.now();
+    }
+
+    public void setTempoContratoMeses(Integer tempoContrato) {
+        this.tempoContratoMeses = tempoContrato;
     }
 }
