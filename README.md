@@ -27,6 +27,8 @@ docker-compose up --build
 ```
 ## Links Úteis
 
+Interface FrontEnd (React) http://localhost:5173/frontend/ --> Faça as requisições utilizando uma interface gráfica
+
 Documentação (Swagger)	http://localhost:8080/swagger-ui/index.html	--> Teste os endpoints visualmente.
 
 Banco de Dados (H2)	http://localhost:8080/h2-console --> Acesse o banco em memória.
@@ -41,7 +43,7 @@ User Name: sa
 
 Password: password
 
-# Contrato de Dados (Mockados atualmente)
+# Contrato de Dados 
 
 1. Prever Churn
 
@@ -90,6 +92,8 @@ Framework: Spring Boot 3.3.5
 
 Banco de Dados: H2 Database (Em memória, para alta velocidade)
 
+Interface gráfica: React 
+
 Documentação: SpringDoc OpenApi (Swagger)
 
 Containerização: Docker & Docker Compose
@@ -97,8 +101,10 @@ Containerização: Docker & Docker Compose
 ## 📂 Estrutura do Projeto
 ```
 src/main/java/com/ficaai/backend
+├── config
 ├── controller   # Pontos de entrada da API (REST)
 ├── dto          # Objetos de Transferência de Dados (Contrato JSON)
 ├── model        # Entidades do Banco de Dados
+├── Exception
 ├── repository   # Camada de acesso a dados (JPA)
 └── service      # Regras de Negócio e Lógica de IA
