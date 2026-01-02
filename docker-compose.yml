@@ -19,9 +19,8 @@ services:
 
   # --- SERVIÇO 2: PYTHON (Data Science) ---
   data-science-api:
-    container_name: ficaai-python
     # CORREÇÃO AQUI: O nome da pasta deve ser igual ao que está no seu VS Code
-    build: ../churnInsight-main/churn_bancos
+    build: ../churnInsight
     ports:
       - "8000:8000"
     networks:

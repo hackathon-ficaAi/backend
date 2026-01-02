@@ -79,9 +79,10 @@ public class ChurnService {
             // --- FIM DO MAPEAMENTO ---
 
             // Envia o Mapa (payloadPython) ao invés do objeto 'dados' direto
-            PrevisaoOutputDTO resposta = restTemplate.postForObject(pythonApiUrl, payloadPython,
+            PrevisaoOutputDTO resposta = restTemplate.postForObject(
+                    pythonApiUrl,
+                    payloadPython,
                     PrevisaoOutputDTO.class);
-
             long duracao = System.currentTimeMillis() - inicio;
             log.info("Sucesso! API Python respondeu em {}ms", duracao);
 

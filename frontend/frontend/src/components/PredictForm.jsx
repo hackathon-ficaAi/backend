@@ -2,12 +2,18 @@ import { useState } from "react";
 import { predictChurn } from "../services/api";
 import Resultado from "./Resultado";
 
-export default function PredictForm(onVerHistorico) {
+export default function PredictForm() {
   const [formData, setFormData] = useState({
-    tempoContratoMeses: "",
-    atrasosPagamento: "",
-    usoMensal: "",
-    suporteChamados: "",
+    creditScore: "",
+    tempoContrato: "",
+    temCartaoCredito: false,
+    pais: "",
+    genero: "",
+    idade: "",
+    numProdutos: "",
+    membroAtivo: false,
+    saldo: "",
+    salarioEstimado: "",
   });
 
   const [resultado, setResultado] = useState(null);
@@ -15,8 +21,11 @@ export default function PredictForm(onVerHistorico) {
   const [erro, setErro] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type == "checkbox" ? checked : value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -26,16 +35,28 @@ export default function PredictForm(onVerHistorico) {
     setResultado(null);
 
     try {
-      const response = await predictChurn({
-        tempo_contrato_meses: Number(formData.tempoContratoMeses),
-        atrasos_pagamento: Number(formData.atrasosPagamento),
-        uso_mensal: Number(formData.usoMensal),
-        plano: formData.plano,
-      });
+      const payload = {
+        credit_score: Number(formData.creditScore),
+        tenure: Number(formData.tempoContrato),
+        tem_cartao_credito: formData.temCartaoCredito,
+        pais: formData.pais,
+        genero: formData.genero,
+        idade: Number(formData.idade),
+        num_produtos: Number(formData.numProdutos),
+        membro_ativo: formData.membroAtivo,
+        saldo: Number(formData.saldo),
+        salario_estimado: Number(formData.salarioEstimado),
+      };
+      const response = await predictChurn(payload);
 
-      setResultado(response);
+      const resultadoAdaptado = {
+        previsao: response.previsao_churn,
+        probabilidade: response.probabilidade_churn,
+      };
+
+      setResultado(resultadoAdaptado);
     } catch (err) {
-      setErro("Erro ao conectar com o backend.");
+      setErro(err.message || "Erro ao conectar com o backend.");
     } finally {
       setLoading(false);
     }
@@ -43,7 +64,6 @@ export default function PredictForm(onVerHistorico) {
 
   return (
     <div className="container">
-      {/* Logo e título */}
       <div
         style={{
           display: "flex",
@@ -53,7 +73,7 @@ export default function PredictForm(onVerHistorico) {
         }}
       >
         <img
-          src="public/FicaAI_logo.png"
+          src="./FicaAI_logo.png"
           alt="FicaAI_Logo"
           style={{ height: "50px" }}
         />
@@ -61,89 +81,101 @@ export default function PredictForm(onVerHistorico) {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <label>Tempo de Contrato (meses)</label>
         <input
+          name="creditScore"
           type="number"
-          name="tempoContratoMeses"
-          value={formData.tempoContratoMeses}
+          placeholder="Score de Crédito"
+          value={formData.creditScore}
           onChange={handleChange}
           required
         />
 
-        <label>Atrasos no Pagamento</label>
         <input
+          name="tempoContrato"
           type="number"
-          name="atrasosPagamento"
-          value={formData.atrasosPagamento}
+          placeholder="Tempo de contrato (meses)"
+          value={formData.tempoContrato}
+          min={"0"}
           onChange={handleChange}
           required
         />
 
-        <label>Uso Mensal (GB)</label>
         <input
-          type="number"
-          name="usoMensal"
-          value={formData.usoMensal}
+          name="pais"
+          placeholder="País"
+          value={formData.pais}
           onChange={handleChange}
           required
         />
 
-        <label>Plano</label>
+        <label>Gênero</label>
         <select
-          name="plano"
-          value={formData.plano}
+          name="genero"
+          value={formData.genero}
           onChange={handleChange}
           required
         >
-          <option value="">-- Escolha --</option>
-          <option value="basico">Básico</option>
-          <option value="premium">Premium</option>
+          <option value="">Selecione</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Feminino">Feminino</option>
         </select>
 
-        {/*<label>Chamados ao Suporte</label>
         <input
+          name="idade"
           type="number"
-          name="suporteChamados"
-          value={formData.suporteChamados}
+          placeholder="Idade"
+          value={formData.idade}
+          min={"0"}
           onChange={handleChange}
           required
-        />*/}
+        />
 
-        <div
-          className="actions"
-          style={{ marginTop: "16px", display: "flex", gap: "10px" }}
-        >
-          {/* Botão de submissão do formulário */}
-          <button type="submit" disabled={loading}>
-            {loading ? "Processando..." : "Prever Churn"}
-          </button>
+        <input
+          name="numProdutos"
+          type="number"
+          placeholder="Número de Produtos"
+          value={formData.numProdutos}
+          min={"0"}
+          onChange={handleChange}
+          required
+        />
 
-          {/* Botão de limpar o formulário */}
-          <button
-            type="button"
-            onClick={() =>
-              setFormData({
-                tempoContratoMeses: "",
-                atrasosPagamento: "",
-                usoMensal: "",
-                plano: "",
-              })
-            }
-          >
-            Limpar
-          </button>
+        <input
+          name="saldo"
+          type="number"
+          placeholder="Saldo"
+          value={formData.saldo}
+          onChange={handleChange}
+          required
+        />
 
-          {/* Botão de ver histórico 
-          {onVerHistorico && (
-            <button
-              type="button"
-              className="secondary"
-              onClick={onVerHistorico}
-            >
-              Ver Histórico
-            </button>
-          )}*/}
-        </div>
+        <input
+          name="salarioEstimado"
+          type="number"
+          placeholder="Salário Estimado"
+          value={formData.salarioEstimado}
+          min={"0"}
+          onChange={handleChange}
+          required
+        />
+
+        <label className="checkbox-item">
+          <input
+            type="checkbox"
+            name="temCartaoCredito"
+            onChange={handleChange}
+          />
+          Possui cartão de crédito
+        </label>
+
+        <label className="checkbox-item">
+          <input type="checkbox" name="membroAtivo" onChange={handleChange} />
+          Membro ativo
+        </label>
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Processando..." : "Prever"}
+        </button>
       </form>
 
       {erro && <div className="error">{erro}</div>}
