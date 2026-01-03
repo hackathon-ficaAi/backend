@@ -13,9 +13,10 @@
 // import org.mockito.junit.jupiter.MockitoExtension;
 // import org.springframework.web.client.RestTemplate;
 
-// import static org.junit.jupiter.api.Assertions.*;
-// import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 
 // @ExtendWith(MockitoExtension.class)
 // class ChurnServiceTest {
@@ -23,119 +24,86 @@
 //     @Mock
 //     private RestTemplate restTemplate;
 
-//     @Mock
-//     private HistoricoRepository repository;
+    @Mock
+    private HistoricoRepository historicoRepository;
 
 //     @InjectMocks
 //     private ChurnService churnService;
 
 //     private ClienteInputDTO clienteInput;
 
-//     @BeforeEach
-//     void setUp() {
-//         clienteInput = new ClienteInputDTO();
-//         clienteInput.setTempoContratoMeses(12);
-//         clienteInput.setAtrasosPagamento(2);
-//         clienteInput.setUsoMensal(150.0);
-//         clienteInput.setPlano("Premium");
-//     }
+    @BeforeEach
+    void setUp() {
+        clienteInput = new ClienteInputDTO();
+        clienteInput.setPais("Brasil");
+        clienteInput.setGenero("masculino");
+        clienteInput.setIdade(30);
+        clienteInput.setNumProdutos(2);
+        clienteInput.setMembroAtivo(true);
+        clienteInput.setSaldo(1000.0);
+        clienteInput.setSalarioEstimado(5000.0);
+    }
 
-//     @Test
-//     @DisplayName("Deve retornar 'Vai continuar' quando atrasos <= 3")
-//     void deveRetornarVaiContinuarQuandoAtrasosMenorOuIgualTres() {
-//         clienteInput.setAtrasosPagamento(2);
-        
-//         when(repository.save(any(HistoricoAnalise.class)))
-//             .thenReturn(new HistoricoAnalise());
-
-//         PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
-
-//         assertNotNull(resultado, "O resultado não deve ser nulo");
-//         assertEquals("Vai continuar", resultado.getPrevisao());
-//         assertEquals(0.95, resultado.getProbabilidade());
-        
-//         verify(repository, times(1)).save(any(HistoricoAnalise.class));
-//     }
-
-//     @Test
-//     @DisplayName("Deve retornar 'Vai cancelar' quando atrasos > 3")
-//     void deveRetornarVaiCancelarQuandoAtrasosMaiorQueTres() {
-//         clienteInput.setAtrasosPagamento(5);
-        
-//         when(repository.save(any(HistoricoAnalise.class)))
-//             .thenReturn(new HistoricoAnalise());
+    @Test
+    @DisplayName("Deve retornar previsão e probabilidade")
+    void deveRetornarPrevisaoEProbabilidade() {
+        when(historicoRepository.save(any(HistoricoAnalise.class)))
+                .thenReturn(new HistoricoAnalise());
 
 //         PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
 
-//         assertNotNull(resultado);
-//         assertEquals("Vai cancelar", resultado.getPrevisao());
-//         assertEquals(0.81, resultado.getProbabilidade());
-        
-//         verify(repository, times(1)).save(any(HistoricoAnalise.class));
-//     }
+        assertNotNull(resultado);
+        assertNotNull(resultado.getPrevisao());
+        assertNotNull(resultado.getProbabilidade());
+    }
 
-//     @Test
-//     @DisplayName("Deve salvar histórico no banco com dados corretos")
-//     void deveSalvarHistoricoComDadosCorretos() {
-//         HistoricoAnalise historicoCapturado = new HistoricoAnalise();
-//         historicoCapturado.setId(1L);
-        
-//         when(repository.save(any(HistoricoAnalise.class)))
-//             .thenReturn(historicoCapturado);
+    @Test
+    @DisplayName("Deve salvar histórico com dados do cliente")
+    void deveSalvarHistoricoComDadosCorretos() {
+        when(historicoRepository.save(any(HistoricoAnalise.class)))
+                .thenReturn(new HistoricoAnalise());
 
 //         churnService.analisarCliente(clienteInput);
 
-//         verify(repository, times(1)).save(argThat(historico ->
-//             historico.getTempoContratoMeses().equals(12) &&
-//             historico.getAtrasosPagamento().equals(2) &&
-//             historico.getUsoMensal().equals(150.0) &&
-//             historico.getPlano().equals("Premium") &&
-//             historico.getPrevisao() != null &&
-//             historico.getProbabilidade() != null
-//         ));
-//     }
+        verify(historicoRepository).save(argThat(h ->
+                h.getPais().equals("Brasil") &&
+                h.getGenero().equals("masculino") &&
+                h.getIdade().equals(30) &&
+                h.getNumProdutos().equals(2) &&
+                h.getMembroAtivo().equals(true) &&
+                h.getSaldo().equals(1000.0) &&
+                h.getSalarioEstimado().equals(5000.0) &&
+                h.getPrevisao() != null &&
+                h.getProbabilidade() != null
+        ));
+    }
 
-//     @Test
-//     @DisplayName("Deve continuar funcionando mesmo se falhar ao salvar no banco")
-//     void deveContinuarFuncionandoSeRepositoryFalhar() {
-//         when(repository.save(any(HistoricoAnalise.class)))
-//             .thenThrow(new RuntimeException("Erro no banco"));
+    @Test
+    @DisplayName("Deve gerar churn para cliente de maior risco")
+    void deveGerarChurnParaClienteDeRisco() {
+        clienteInput.setIdade(65);
+        clienteInput.setSaldo(0.0);
+        clienteInput.setNumProdutos(1);
+        clienteInput.setMembroAtivo(false);
 
-//         assertDoesNotThrow(() -> {
-//             PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
-//             assertNotNull(resultado);
-//             assertEquals("Vai continuar", resultado.getPrevisao());
-//         });
-//     }
+        when(historicoRepository.save(any(HistoricoAnalise.class)))
+                .thenReturn(new HistoricoAnalise());
 
-//     @Test
-//     @DisplayName("Deve processar diferentes valores de atrasos corretamente")
-//     void deveProcessarDiferentesValoresAtrasos() {
-//         when(repository.save(any(HistoricoAnalise.class)))
-//             .thenReturn(new HistoricoAnalise());
+        PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
 
-//         clienteInput.setAtrasosPagamento(3);
-//         PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
-//         assertEquals("Vai continuar", resultado.getPrevisao(), 
-//             "Com 3 atrasos deve continuar");
+        assertEquals("Vai cancelar", resultado.getPrevisao());
+    }
 
-//         clienteInput.setAtrasosPagamento(4);
-//         resultado = churnService.analisarCliente(clienteInput);
-//         assertEquals("Vai cancelar", resultado.getPrevisao(), 
-//             "Com 4 atrasos deve cancelar");
-//     }
+    @Test
+    @DisplayName("Não deve quebrar se falhar ao salvar histórico")
+    void naoDeveQuebrarSeSalvarFalhar() {
+        when(historicoRepository.save(any(HistoricoAnalise.class)))
+                .thenThrow(new RuntimeException("Erro no banco"));
 
-//     @Test
-//     @DisplayName("Deve processar cliente sem atrasos")
-//     void deveProcessarClienteSemAtrasos() {
-//         clienteInput.setAtrasosPagamento(0);
-//         when(repository.save(any(HistoricoAnalise.class)))
-//             .thenReturn(new HistoricoAnalise());
-
-//         PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
-
-//         assertEquals("Vai continuar", resultado.getPrevisao());
-//         assertEquals(0.95, resultado.getProbabilidade());
-//     }
-// }
+        assertDoesNotThrow(() -> {
+            PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
+            assertNotNull(resultado);
+        });
+    }
+}
 

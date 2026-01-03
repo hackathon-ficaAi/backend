@@ -20,13 +20,13 @@
 // import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 // import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// /**
-//  * Testes de Integração para ChurnController
-//  * 
-//  * @WebMvcTest - Carrega apenas o contexto web (Controllers)
-//  * MockMvc - Permite fazer requisições HTTP simuladas
-//  * @MockBean - Cria um mock do Service (não usa a implementação real)
-//  */
+/**
+ * Testes de Integração para ChurnController
+ * 
+ * @WebMvcTest - Carrega apenas o contexto web (Controllers)
+ *             MockMvc - Permite fazer requisições HTTP simuladas
+ * @MockBean - Cria um mock do Service (não usa a implementação real)
+ */
 
 // @WebMvcTest(ChurnController.class)
 // class ChurnControllerTest {
@@ -42,21 +42,24 @@
 
 //     private ClienteInputDTO clienteInput;
 
-//     // @BeforeEach
-//     // void setUp() {
-//     //     clienteInput = new ClienteInputDTO();
-//     //     clienteInput.setTempoContratoMeses(12);
-//     //     clienteInput.setAtrasosPagamento(2);
-//     //     clienteInput.setUsoMensal(150.0);
-//     //     clienteInput.setPlano("Premium");
-//     // }
+    @BeforeEach
+    void setUp() {
+        clienteInput = new ClienteInputDTO();
+        clienteInput.setPais("Brasil");
+        clienteInput.setGenero("masculino");
+        clienteInput.setIdade(35);
+        clienteInput.setNumProdutos(2);
+        clienteInput.setMembroAtivo(true);
+        clienteInput.setSaldo(5000.0);
+        clienteInput.setSalarioEstimado(8000.0);
+    }
 
-//     @Test
-//     @DisplayName("POST /api/predict - Deve retornar 200 OK com previsão válida")
-//     void deveRetornarPrevisaoComSucesso() throws Exception {
-//         PrevisaoOutputDTO previsaoEsperada = new PrevisaoOutputDTO("Vai continuar", 0.95);
-//         when(churnService.analisarCliente(any(ClienteInputDTO.class)))
-//             .thenReturn(previsaoEsperada);
+    @Test
+    @DisplayName("POST /api/predict - Deve retornar 200 OK com previsão válida")
+    void deveRetornarPrevisaoComSucesso() throws Exception {
+        PrevisaoOutputDTO previsaoEsperada = new PrevisaoOutputDTO("Vai continuar", 0.95);
+        when(churnService.analisarCliente(any(ClienteInputDTO.class)))
+                .thenReturn(previsaoEsperada);
 
 //         mockMvc.perform(post("/api/predict")
 //                 .contentType(MediaType.APPLICATION_JSON)
@@ -68,139 +71,55 @@
 //                 .andExpect(jsonPath("$.probabilidade", is(0.95))); // Verifica campo 'probabilidade'
 //     }
 
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve retornar 400 quando tempo_contrato_meses for nulo")
-//     // void deveRetornar400QuandoTempoContratoForNulo() throws Exception {
-//     //     clienteInput.setTempoContratoMeses(null);
+    @Test
+    @DisplayName("POST /api/predict - Deve retornar 400 quando pais for vazio")
+    void deveRetornar400QuandoPaisForVazio() throws Exception {
+        clienteInput.setPais("");
 
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isBadRequest()); // Deve retornar 400 Bad Request
-//     // }
+        mockMvc.perform(post("/api/predict")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(clienteInput)))
+                .andExpect(status().isBadRequest());
+    }
 
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve retornar 400 quando atrasos_pagamento for nulo")
-//     // void deveRetornar400QuandoAtrasosPagamentoForNulo() throws Exception {
+    @Test
+    @DisplayName("POST /api/predict - Deve retornar 400 quando idade for menor que 1")
+    void deveRetornar400QuandoIdadeInvalida() throws Exception {
+        clienteInput.setIdade(0);
 
-//     //     clienteInput.setAtrasosPagamento(null);
+        mockMvc.perform(post("/api/predict")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(clienteInput)))
+                .andExpect(status().isBadRequest());
+    }
 
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isBadRequest());
-//     // }
+    @Test
+    @DisplayName("POST /api/predict - Deve processar JSON em snake_case corretamente")
+    void deveProcessarJsonSnakeCase() throws Exception {
 
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve retornar 400 quando uso_mensal for nulo")
-//     // void deveRetornar400QuandoUsoMensalForNulo() throws Exception {
-//     //     clienteInput.setUsoMensal(null);
+        PrevisaoOutputDTO previsaoEsperada = new PrevisaoOutputDTO("Vai cancelar", 0.81);
 
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isBadRequest());
-//     // }
+        when(churnService.analisarCliente(any(ClienteInputDTO.class)))
+                .thenReturn(previsaoEsperada);
 
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve retornar 400 quando plano for vazio")
-//     // void deveRetornar400QuandoPlanoForVazio() throws Exception {
-//     //     clienteInput.setPlano("");
+        String json = """
+                {
+                "pais": "brasil",
+                "genero": "masculino",
+                "idade": 40,
+                "num_produtos": 1,
+                "membro_ativo": 0,
+                "saldo": 300.0,
+                "salario_estimado": 2000.0
+                }
+                """;
 
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isBadRequest());
-//     // }
+        mockMvc.perform(post("/api/predict")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.previsao", is("Vai cancelar")))
+                .andExpect(jsonPath("$.probabilidade", is(0.81)));
+    }
 
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve retornar 400 quando tempo_contrato_meses for menor que 1")
-//     // void deveRetornar400QuandoTempoContratoMenorQue1() throws Exception {
-//     //     clienteInput.setTempoContratoMeses(0);
-
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isBadRequest());
-//     // }
-
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve retornar 400 quando atrasos_pagamento for negativo")
-//     // void deveRetornar400QuandoAtrasosPagamentoForNegativo() throws Exception {
-//     //     clienteInput.setAtrasosPagamento(-1);
-
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isBadRequest());
-//     // }
-
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve retornar 400 quando uso_mensal for zero ou negativo")
-//     // void deveRetornar400QuandoUsoMensalForZeroOuNegativo() throws Exception {
-//     //     clienteInput.setUsoMensal(0.0);
-
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isBadRequest());
-//     // }
-
-//     @Test
-//     @DisplayName("POST /api/predict - Deve processar JSON com underscores corretamente")
-//     void deveProcessarJsonComUnderscoresCorretamente() throws Exception {
-
-//         PrevisaoOutputDTO previsaoEsperada = new PrevisaoOutputDTO("Vai cancelar", 0.81);
-//         when(churnService.analisarCliente(any(ClienteInputDTO.class)))
-//             .thenReturn(previsaoEsperada);
-
-//         String jsonComUnderscore = """
-//             {
-//                 "tempo_contrato_meses": 6,
-//                 "atrasos_pagamento": 5,
-//                 "uso_mensal": 80.5,
-//                 "plano": "Básico"
-//             }
-//             """;
-
-//         mockMvc.perform(post("/api/predict")
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(jsonComUnderscore))
-//                 .andDo(print())
-//                 .andExpect(status().isOk())
-//                 .andExpect(jsonPath("$.previsao", is("Vai cancelar")))
-//                 .andExpect(jsonPath("$.probabilidade", is(0.81)));
-//     // }
-
-//     // @Test
-//     // @DisplayName("POST /api/predict - Deve aceitar diferentes planos")
-//     // void deveAceitarDiferentesPlanos() throws Exception {
-//     //     PrevisaoOutputDTO previsaoEsperada = new PrevisaoOutputDTO("Vai continuar", 0.95);
-//     //     when(churnService.analisarCliente(any(ClienteInputDTO.class)))
-//     //         .thenReturn(previsaoEsperada);
-
-//     //     clienteInput.setPlano("Básico");
-
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isOk());
-
-//     //     clienteInput.setPlano("Premium");
-        
-//     //     mockMvc.perform(post("/api/predict")
-//     //             .contentType(MediaType.APPLICATION_JSON)
-//     //             .content(objectMapper.writeValueAsString(clienteInput)))
-//     //             .andDo(print())
-//     //             .andExpect(status().isOk());
-//     // }
-// // }
-
+}
