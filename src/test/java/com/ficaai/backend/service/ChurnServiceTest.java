@@ -1,36 +1,36 @@
-// package com.ficaai.backend.service;
+package com.ficaai.backend.service;
 
-// import com.ficaai.backend.dto.ClienteInputDTO;
-// import com.ficaai.backend.dto.PrevisaoOutputDTO;
-// import com.ficaai.backend.model.HistoricoAnalise;
-// import com.ficaai.backend.repository.HistoricoRepository;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.DisplayName;
-// import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.api.extension.ExtendWith;
-// import org.mockito.InjectMocks;
-// import org.mockito.Mock;
-// import org.mockito.junit.jupiter.MockitoExtension;
-// import org.springframework.web.client.RestTemplate;
+import com.ficaai.backend.dto.ClienteInputDTO;
+import com.ficaai.backend.dto.PrevisaoOutputDTO;
+import com.ficaai.backend.model.HistoricoAnalise;
+import com.ficaai.backend.repository.HistoricoRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.client.RestTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
-// @ExtendWith(MockitoExtension.class)
-// class ChurnServiceTest {
+@ExtendWith(MockitoExtension.class)
+class ChurnServiceTest {
 
-//     @Mock
-//     private RestTemplate restTemplate;
+    @Mock
+    private RestTemplate restTemplate;
 
     @Mock
     private HistoricoRepository historicoRepository;
 
-//     @InjectMocks
-//     private ChurnService churnService;
+    @InjectMocks
+    private ChurnService churnService;
 
-//     private ClienteInputDTO clienteInput;
+    private ClienteInputDTO clienteInput;
 
     @BeforeEach
     void setUp() {
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.*;
         when(historicoRepository.save(any(HistoricoAnalise.class)))
                 .thenReturn(new HistoricoAnalise());
 
-//         PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
+        PrevisaoOutputDTO resultado = churnService.analisarCliente(clienteInput);
 
         assertNotNull(resultado);
         assertNotNull(resultado.getPrevisao());
@@ -63,7 +63,7 @@ import static org.mockito.Mockito.*;
         when(historicoRepository.save(any(HistoricoAnalise.class)))
                 .thenReturn(new HistoricoAnalise());
 
-//         churnService.analisarCliente(clienteInput);
+        churnService.analisarCliente(clienteInput);
 
         verify(historicoRepository).save(argThat(h ->
                 h.getPais().equals("Brasil") &&
@@ -106,4 +106,3 @@ import static org.mockito.Mockito.*;
         });
     }
 }
-

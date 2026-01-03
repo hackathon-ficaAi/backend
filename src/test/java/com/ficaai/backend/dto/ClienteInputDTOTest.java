@@ -1,16 +1,16 @@
-// package com.ficaai.backend.dto;
+package com.ficaai.backend.dto;
 
-// import jakarta.validation.ConstraintViolation;
-// import jakarta.validation.Validation;
-// import jakarta.validation.Validator;
-// import jakarta.validation.ValidatorFactory;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.DisplayName;
-// import org.junit.jupiter.api.Test;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-// import java.util.Set;
+import java.util.Set;
 
-// import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Testes para validações do ClienteInputDTO
@@ -20,13 +20,13 @@
  */
 class ClienteInputDTOTest {
 
-//     private Validator validator;
-//     private ClienteInputDTO cliente;
+    private Validator validator;
+    private ClienteInputDTO cliente;
 
-//     @BeforeEach
-//     void setUp() {
-//         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-//         validator = factory.getValidator();
+    @BeforeEach
+    void setUp() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
 
         cliente = new ClienteInputDTO();
         cliente.setPais("Brasil");
@@ -38,13 +38,13 @@ class ClienteInputDTOTest {
         cliente.setSalarioEstimado(5000.0);
     }
 
-//     @Test
-//     @DisplayName("Deve validar DTO com todos os campos corretos")
-//     void deveValidarDTOComTodosCamposCorretos() {
-//         Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
+    @Test
+    @DisplayName("Deve validar DTO com todos os campos corretos")
+    void deveValidarDTOComTodosCamposCorretos() {
+        Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
 
-//         assertTrue(violations.isEmpty(), "Não deveria ter erros de validação");
-//     }
+        assertTrue(violations.isEmpty(), "Não deveria ter erros de validação");
+    }
 
     @Test
     @DisplayName("Deve invalidar quando pais for vazio")
