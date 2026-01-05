@@ -101,6 +101,7 @@ label {
   color: var(--text-muted);
   margin-bottom: 6px;
   display: block;
+  text-align: left; /* Garante alinhamento à esquerda */
 }
 
 input,
@@ -112,6 +113,7 @@ select {
   border: 1px solid var(--border);
   font-size: 14px;
   transition: 0.2s;
+  background-color: #fff; /* Garante fundo branco */
 }
 
 input:focus,
@@ -126,6 +128,7 @@ select:focus {
 .error{
   border-color: var(--error-text);
 }
+
 /* =========================
    BOTÕES
 ========================= */
@@ -140,6 +143,7 @@ button {
   color: white;
   cursor: pointer;
   transition: 0.2s;
+  width: 100%; /* Força botão full width no mobile */
 }
 
 button:hover {
@@ -173,13 +177,23 @@ button.secondary:hover {
   text-align: center;
 }
 
-.success {
+/* Classes para o Card de Resultado (Resultado.jsx) */
+.card-resultado {
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.success-card {
   background: var(--success-bg);
+  border: 1px solid var(--success-text);
   color: var(--success-text);
 }
 
-.error {
+.error-card {
   background: var(--error-bg);
+  border: 1px solid var(--error-text);
   color: var(--error-text);
 }
 
@@ -205,17 +219,17 @@ table {
 
 thead {
   background: #93959b;
+  color: black;
 }
 
 th,
 td {
-  padding: 14px;
+  padding: 12px;
   text-align: center;
   border-bottom: 1px solid #e5e7eb;
 }
 
 th {
-  color: var(--text-dark);
   font-weight: 600;
 }
 
@@ -238,4 +252,36 @@ tbody tr:hover {
   .actions {
     flex-direction: column;
   }
+}
+
+/* =========================
+   ADAPTAÇÕES BANCÁRIO (Correções)
+========================= */
+
+/* 1. Corrige o checkbox para não ocupar 100% de largura */
+input[type="checkbox"] {
+  width: auto;
+  margin-bottom: 0;
+  margin-right: 10px;
+  transform: scale(1.2);
+}
+
+/* 2. Alinha o container do checkbox */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin: 10px 0 20px 0;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* 3. Permite campos lado a lado (País e Gênero) */
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.form-row > div {
+  flex: 1;
 }

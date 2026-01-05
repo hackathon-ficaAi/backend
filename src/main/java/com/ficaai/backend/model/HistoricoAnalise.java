@@ -35,8 +35,4 @@ public class HistoricoAnalise {
     public void prePersist() {
         this.dataAnalise = LocalDateTime.now();
     }
-
-    public void setTempoContratoMeses(Integer tempoContrato) {
-        this.tempoContratoMeses = tempoContrato;
-    }
 }

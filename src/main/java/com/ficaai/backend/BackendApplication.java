@@ -13,13 +13,13 @@ public class BackendApplication {
 }
 
 // ./mvnw clean package -DskipTests --> compila o projeto sem rodar os testes
-//  docker-compose up --build --> sobe o projeto no docker
+// docker-compose up --build --> sobe o projeto no docker
 
 // http://localhost:8080/swagger-ui/index.html --> link do swagger
 // http://localhost:8080/h2-console --> link do banco de dados H2
 
-//JBC URL: jdbc:h2:mem:ficaaidb
-//  User: sa
-//  Password: password
+// JBC URL: jdbc:h2:mem:ficaaidb
+// User: sa
+// Password: password
 
-// 2024 FicaAI. All rights reserved.
+// 2026 FicaAI. All rights reserved.

@@ -13,10 +13,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Testes para validações do ClienteInputDTO
- * 
- * Testa se as anotações de validação (@NotNull, @Min, @Positive, etc.) 
- * estão funcionando corretamente
+ * Testes para validações do ClienteInputDTO (Modelo Bancário)
  */
 class ClienteInputDTOTest {
 
@@ -28,140 +25,70 @@ class ClienteInputDTOTest {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
 
+        // Setup inicial com dados válidos
         cliente = new ClienteInputDTO();
-        cliente.setTempoContratoMeses(12);
-        cliente.setAtrasosPagamento(2);
-        cliente.setUsoMensal(150.0);
-        cliente.setPlano("Premium");
+        cliente.setPais("France");
+        cliente.setGenero("Male");
+        cliente.setIdade(35);
+        cliente.setSaldo(50000.0);
+        cliente.setNumProdutos(1);
+        cliente.setMembroAtivo(true);
+        cliente.setSalarioEstimado(60000.0);
     }
 
     @Test
     @DisplayName("Deve validar DTO com todos os campos corretos")
     void deveValidarDTOComTodosCamposCorretos() {
         Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
         assertTrue(violations.isEmpty(), "Não deveria ter erros de validação");
     }
 
+    // --- TESTES DE IDADE ---
+
     @Test
-    @DisplayName("Deve invalidar quando tempo_contrato_meses for nulo")
-    void deveInvalidarQuandoTempoContratoForNulo() {
-        cliente.setTempoContratoMeses(null);
-
+    @DisplayName("Deve invalidar quando Idade for menor que 18")
+    void deveInvalidarQuandoIdadeMenorQueDezoito() {
+        cliente.setIdade(17);
         Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
         assertFalse(violations.isEmpty());
-        assertEquals(1, violations.size());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("tempo de contrato é obrigatório")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("mínimo 18")));
     }
 
+    // --- TESTES DE CAMPOS OBRIGATÓRIOS ---
+
     @Test
-    @DisplayName("Deve invalidar quando tempo_contrato_meses for menor que 1")
-    void deveInvalidarQuandoTempoContratoMenorQue1() {
-        cliente.setTempoContratoMeses(0);
-
+    @DisplayName("Deve invalidar quando País for vazio")
+    void deveInvalidarQuandoPaisVazio() {
+        cliente.setPais("");
         Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("pelo menos 1 mês")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("país é obrigatório")));
     }
 
     @Test
-    @DisplayName("Deve invalidar quando atrasos_pagamento for nulo")
-    void deveInvalidarQuandoAtrasosPagamentoForNulo() {
-        cliente.setAtrasosPagamento(null);
-
+    @DisplayName("Deve invalidar quando Saldo for nulo")
+    void deveInvalidarQuandoSaldoNulo() {
+        cliente.setSaldo(null);
         Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("número de atrasos é obrigatório")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("saldo é obrigatório")));
     }
 
     @Test
-    @DisplayName("Deve invalidar quando atrasos_pagamento for negativo")
-    void deveInvalidarQuandoAtrasosPagamentoForNegativo() {
-        cliente.setAtrasosPagamento(-1);
-
+    @DisplayName("Deve invalidar quando NumProdutos for negativo")
+    void deveInvalidarQuandoNumProdutosNegativo() {
+        cliente.setNumProdutos(-1);
         Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("não podem ser negativos")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("não pode ser negativo")));
     }
 
     @Test
-    @DisplayName("Deve invalidar quando uso_mensal for nulo")
-    void deveInvalidarQuandoUsoMensalForNulo() {
-        cliente.setUsoMensal(null);
-
+    @DisplayName("Deve invalidar quando SalarioEstimado for zero ou negativo")
+    void deveInvalidarQuandoSalarioInvalido() {
+        cliente.setSalarioEstimado(0.0);
         Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("uso mensal é obrigatório")));
-    }
-
-    @Test
-    @DisplayName("Deve invalidar quando uso_mensal for zero ou negativo")
-    void deveInvalidarQuandoUsoMensalForZeroOuNegativo() {
-        cliente.setUsoMensal(0.0);
-
-        Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("deve ser um valor positivo")));
-    }
-
-    @Test
-    @DisplayName("Deve invalidar quando plano for nulo")
-    void deveInvalidarQuandoPlanoForNulo() {
-        cliente.setPlano(null);
-
-        Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("plano é obrigatório")));
-    }
-
-    @Test
-    @DisplayName("Deve invalidar quando plano for vazio")
-    void deveInvalidarQuandoPlanoForVazio() {
-        cliente.setPlano("");
-
-        Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-            .anyMatch(v -> v.getMessage().contains("plano é obrigatório")));
-    }
-
-    @Test
-    @DisplayName("Deve aceitar valores válidos nos limites")
-    void deveAceitarValoresValidosNosLimites() {
-        cliente.setTempoContratoMeses(1);
-        cliente.setAtrasosPagamento(0);
-        cliente.setUsoMensal(0.01);
-
-        Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
-        assertTrue(violations.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Deve aceitar valores grandes")
-    void deveAceitarValoresGrandes() {
-        cliente.setTempoContratoMeses(999);
-        cliente.setAtrasosPagamento(100);
-        cliente.setUsoMensal(99999.99);
-
-        Set<ConstraintViolation<ClienteInputDTO>> violations = validator.validate(cliente);
-
-        assertTrue(violations.isEmpty());
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("positivo")));
     }
 }
-

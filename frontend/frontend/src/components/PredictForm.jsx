@@ -4,19 +4,26 @@ import Resultado from "./Resultado";
 
 export default function PredictForm(onVerHistorico) {
   const [formData, setFormData] = useState({
-    tempoContratoMeses: "",
-    atrasosPagamento: "",
-    usoMensal: "",
-    suporteChamados: "",
+    pais: "Brasil", // Valor padrão
+    genero: "Masculino", // Valor padrão
+    idade: "",
+    num_produtos: "1",
+    membro_ativo: true, // Boolean (Checkbox)
+    saldo: "",
+    salario_estimado: "",
   });
 
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState(null);
 
+  // Manipula mudanças nos inputs (Texto, Número e Checkbox)
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -26,16 +33,25 @@ export default function PredictForm(onVerHistorico) {
     setResultado(null);
 
     try {
-      const response = await predictChurn({
-        tempo_contrato_meses: Number(formData.tempoContratoMeses),
-        atrasos_pagamento: Number(formData.atrasosPagamento),
-        uso_mensal: Number(formData.usoMensal),
-        plano: formData.plano,
-      });
+      // Monta o payload exatamente como o Java DTO espera
+      // Nota: O Java vai filtrar o que manda pro Python, mas precisa receber no DTO
+      const payload = {
+        pais: formData.pais,
+        genero: formData.genero,
+        idade: Number(formData.idade),
+        num_produtos: Number(formData.num_produtos),
+        membro_ativo: formData.membro_ativo, // Envia true/false
+        saldo: Number(formData.saldo),
+        salario_estimado: Number(formData.salario_estimado),
+        
+        // Campos removidos (credit_score, tenure, cartao) NÃO são enviados.
+      };
 
+      const response = await predictChurn(payload);
       setResultado(response);
     } catch (err) {
-      setErro("Erro ao conectar com o backend.");
+      console.error(err);
+      setErro("Erro ao conectar com o backend. Verifique se o Docker está rodando.");
     } finally {
       setLoading(false);
     }
@@ -43,106 +59,117 @@ export default function PredictForm(onVerHistorico) {
 
   return (
     <div className="container">
-      {/* Logo e título */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          marginBottom: "20px",
-        }}
-      >
-        <img
-          src="public/FicaAI_logo.png"
-          alt="FicaAI_Logo"
-          style={{ height: "50px" }}
-        />
-        <h1 style={{ margin: 0 }}>Previsão de Churn</h1>
+      {/* Cabeçalho */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+        <img src="public/FicaAI_logo.png" alt="FicaAI_Logo" style={{ height: "50px" }} />
+        <h1 style={{ margin: 0 }}>Previsão de Churn Bancário</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <label>Tempo de Contrato (meses)</label>
+        
+        {/* --- DADOS DEMOGRÁFICOS --- */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ flex: 1 }}>
+            <label>País</label>
+            <select name="pais" value={formData.pais} onChange={handleChange} required>
+              <option value="France">França (France)</option>
+              <option value="Spain">Espanha (Spain)</option>
+              <option value="Germany">Alemanha (Germany)</option>
+            </select>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label>Gênero</label>
+            <select name="genero" value={formData.genero} onChange={handleChange} required>
+              <option value="Male">Masculino (Male)</option>
+              <option value="Female">Feminino (Female)</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Idade</label>
         <input
           type="number"
-          name="tempoContratoMeses"
-          value={formData.tempoContratoMeses}
+          name="idade"
+          value={formData.idade}
           onChange={handleChange}
+          placeholder="Ex: 35"
+          min="18"
           required
         />
 
-        <label>Atrasos no Pagamento</label>
+        {/* --- DADOS FINANCEIROS --- */}
+        <label>Saldo em Conta (€)</label>
         <input
           type="number"
-          name="atrasosPagamento"
-          value={formData.atrasosPagamento}
+          name="saldo"
+          value={formData.saldo}
           onChange={handleChange}
+          placeholder="Ex: 85000.50"
+          step="0.01"
           required
         />
 
-        <label>Uso Mensal (GB)</label>
+        <label>Salário Estimado (€)</label>
         <input
           type="number"
-          name="usoMensal"
-          value={formData.usoMensal}
+          name="salario_estimado"
+          value={formData.salario_estimado}
           onChange={handleChange}
+          placeholder="Ex: 60000.00"
+          step="0.01"
           required
         />
 
-        <label>Plano</label>
-        <select
-          name="plano"
-          value={formData.plano}
-          onChange={handleChange}
-          required
-        >
-          <option value="">-- Escolha --</option>
-          <option value="basico">Básico</option>
-          <option value="premium">Premium</option>
-        </select>
-
-        {/*<label>Chamados ao Suporte</label>
+        <label>Número de Produtos</label>
         <input
           type="number"
-          name="suporteChamados"
-          value={formData.suporteChamados}
+          name="num_produtos"
+          value={formData.num_produtos}
           onChange={handleChange}
+          placeholder="Ex: 1 ou 2"
+          min="1"
+          max="4"
           required
-        />*/}
+        />
 
-        <div
-          className="actions"
-          style={{ marginTop: "16px", display: "flex", gap: "10px" }}
-        >
-          {/* Botão de submissão do formulário */}
+        {/* --- CHECKBOX --- */}
+        <div style={{ margin: "15px 0", display: "flex", alignItems: "center", gap: "10px" }}>
+          <input
+            type="checkbox"
+            id="membro_ativo"
+            name="membro_ativo"
+            checked={formData.membro_ativo}
+            onChange={handleChange}
+            style={{ width: "20px", height: "20px" }}
+          />
+          <label htmlFor="membro_ativo" style={{ margin: 0, cursor: "pointer" }}>
+            Cliente é um Membro Ativo?
+          </label>
+        </div>
+
+        {/* --- AÇÕES --- */}
+        <div className="actions" style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
           <button type="submit" disabled={loading}>
             {loading ? "Processando..." : "Prever Churn"}
           </button>
 
-          {/* Botão de limpar o formulário */}
           <button
             type="button"
+            className="secondary"
             onClick={() =>
               setFormData({
-                tempoContratoMeses: "",
-                atrasosPagamento: "",
-                usoMensal: "",
-                plano: "",
+                pais: "France",
+                genero: "Male",
+                idade: "",
+                num_produtos: "1",
+                membro_ativo: true,
+                saldo: "",
+                salario_estimado: "",
               })
             }
           >
             Limpar
           </button>
-
-          {/* Botão de ver histórico 
-          {onVerHistorico && (
-            <button
-              type="button"
-              className="secondary"
-              onClick={onVerHistorico}
-            >
-              Ver Histórico
-            </button>
-          )}*/}
         </div>
       </form>
 

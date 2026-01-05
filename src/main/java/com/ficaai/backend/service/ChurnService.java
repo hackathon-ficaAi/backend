@@ -62,18 +62,15 @@ public class ChurnService {
             Map<String, Object> payloadPython = new HashMap<>();
 
             // Mapeando campos do DTO (Java) para o JSON da API (Python)
-            payloadPython.put("credit_score", dados.getCreditScore());
+
             payloadPython.put("pais", dados.getPais());
             payloadPython.put("genero", dados.getGenero());
             payloadPython.put("idade", dados.getIdade());
-            payloadPython.put("tenure", dados.getTempoContrato()); // Python geralmente chama de 'tenure'
             payloadPython.put("saldo", dados.getSaldo());
             payloadPython.put("num_produtos", dados.getNumProdutos());
 
             // Tratamento para booleanos (se o Python esperar 0 ou 1)
-            payloadPython.put("tem_cartao_credito", dados.getTemCartaoCredito() ? 1 : 0);
             payloadPython.put("membro_ativo", dados.getMembroAtivo() ? 1 : 0);
-
             payloadPython.put("salario_estimado", dados.getSalarioEstimado());
 
             // --- FIM DO MAPEAMENTO ---
@@ -92,7 +89,6 @@ public class ChurnService {
             throw new ExternalServiceException("Serviço de IA indisponível no momento", e);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("Erro API Python: {} | Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            // Repassa a mensagem de erro detalhada do Python (ex: campo faltando)
             throw new ExternalServiceException("Erro de validação na IA: " + e.getResponseBodyAsString(), e);
         }
     }
@@ -104,9 +100,6 @@ public class ChurnService {
 
             // Copia propriedades iguais
             BeanUtils.copyProperties(dados, historico);
-
-            // Campos manuais (caso os nomes sejam diferentes no banco)
-            historico.setTempoContratoMeses(dados.getTempoContrato());
 
             historico.setPrevisao(resultado.getPrevisao());
             historico.setProbabilidade(resultado.getProbabilidade());

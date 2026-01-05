@@ -5,25 +5,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 @Data
 public class ClienteInputDTO {
-    @NotNull(message = "O Score de Crédito é obrigatório")
-    @Min(value = 300, message = "Score inválido (min 300)")
-    @JsonProperty("credit_score")
-    private Integer creditScore;
-
-    @NotNull(message = "O tempo de contrato (Tenure) é obrigatório")
-    @PositiveOrZero(message = "O tempo deve ser 0 ou maior")
-    @JsonProperty("tenure")
-    private Integer tempoContrato; // No Python isso vira 'tenure'
-
-    @NotNull(message = "Informação sobre cartão de crédito é obrigatória")
-    @JsonProperty("tem_cartao_credito")
-    private Boolean temCartaoCredito;
-
     @NotBlank(message = "O país é obrigatório")
     @JsonProperty("pais")
     private String pais;
