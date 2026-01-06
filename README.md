@@ -6,13 +6,6 @@ Microsserviço responsável pela inteligência de predição de Churn (Rotativid
 
 ## 🚀 Como Rodar (Jeito Rápido)
 
-![Java](https://img.shields.io/badge/Java-21-orange)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.5-green)
-![Docker](https://img.shields.io/badge/Docker-Ready-blue)
-![Status](https://img.shields.io/badge/Status-Active-success)
-
----
-
 ### Passo a Passo
 
 1.  Abra o terminal na raiz do projeto.
@@ -39,7 +32,7 @@ User Name: sa
 
 Password: password
 
-# Contrato de Dados (Mockados atualmente)
+# Contrato de Dados
 
 Exemplo de Entrada (JSON):
 {
