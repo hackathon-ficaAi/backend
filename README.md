@@ -13,13 +13,6 @@ Microsserviço responsável pela inteligência de predição de Churn (Rotativid
 
 ---
 
-## 🚀 Como Rodar (Quick Start)
-
-Este projeto foi desenhado para ser agnóstico ao ambiente, rodando via **Docker**. Você não precisa instalar Java ou Maven localmente.
-
-### Pré-requisitos
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e em execução.
-
 ### Passo a Passo
 
 1.  Abra o terminal na raiz do projeto.
@@ -29,6 +22,8 @@ Este projeto foi desenhado para ser agnóstico ao ambiente, rodando via **Docker
 docker-compose up --build
 ```
 ## Links Úteis
+
+**[💻 Aplicação Web (Frontend)](http://localhost:5173/frontend/)**
 
 Documentação (Swagger)	http://localhost:8080/swagger-ui/index.html	--> Teste os endpoints visualmente.
 
@@ -46,22 +41,18 @@ Password: password
 
 # Contrato de Dados (Mockados atualmente)
 
-1. Prever Churn
-
-Analisa os dados de um cliente e retorna a probabilidade de cancelamento.
-
-    Método: POST
-
-    URL: /api/predict
-
 Exemplo de Entrada (JSON):
-
 {
-  "tempo_contrato_meses": 12,
-  "atrasos_pagamento": 2,
-  "uso_mensal": 14.5,
-  "plano": "Premium"
+  "pais": "France",
+  "genero": "Female",
+  "idade": 40,
+  "saldo": 60000.0,
+  "num_produtos": 2,
+  "membro_ativo": true,
+  "salario_estimado": 50000.0
 }
+
+Acredito que só na documentação esteja errado, mas deixando avisado para vocês
 
 Exemplo de Saída (JSON):
 
@@ -71,6 +62,16 @@ Exemplo de Saída (JSON):
 }
 
 ## 2. Estatísticas do Sistema
+
+Prever Churn
+
+Analisa os dados de um cliente e retorna a probabilidade de cancelamento.
+
+    Método: POST
+
+    URL: /api/predict
+
+Histórico
 
 Retorna métricas gerais sobre as análises realizadas desde a inicialização.
 
